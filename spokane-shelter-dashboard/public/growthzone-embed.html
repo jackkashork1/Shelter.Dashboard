@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Embed the Spokane Shelter Map — GrowthZone Instructions</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #111827;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 44px 48px;
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 24px 20px; }
+    }
+    h1 { font-size: 22px; font-weight: 700; color: #1a2744; margin: 0 0 4px; }
+    .sub { color: #6b7280; font-size: 14px; margin: 0 0 32px; }
+    h2 {
+      font-size: 16px; font-weight: 600; color: #1a2744;
+      margin: 36px 0 12px; padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    h3 { font-size: 14px; font-weight: 600; color: #374151; margin: 20px 0 8px; }
+    p { margin: 0 0 12px; color: #374151; }
+    ol, ul { margin: 0 0 16px; padding-left: 22px; color: #374151; }
+    li { margin-bottom: 5px; }
+    pre {
+      background: #1a2744; color: #e2e8f0;
+      border-radius: 8px; padding: 20px 24px;
+      overflow-x: auto; font-size: 13px; line-height: 1.7;
+      margin: 12px 0 20px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    code {
+      background: #f1f5f9; padding: 1px 5px;
+      border-radius: 3px; font-size: 13px; color: #1a2744;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .note {
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 6px; padding: 12px 16px;
+      font-size: 13px; color: '#1e40af'; margin: 16px 0;
+    }
+    .badge {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 8px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-rec  { background: #c9a84c; color: #1a2744; }
+    .badge-alt  { background: #e2e8f0; color: #374151; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 20px; }
+    th { background: #f0f4f8; text-align: left; padding: 8px 12px; font-weight: 600; color: #1a2744; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #374151; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #9ca3af; }
+    .footer a { color: #6b7280; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Embedding the Spokane Shelter Map</h1>
+  <p class="sub">Instructions for GrowthZone CMS — Spokane Business Association</p>
+
+  <div class="note">
+    <strong>Before you start:</strong> Replace <code>https://YOUR-DOMAIN</code> throughout these
+    examples with the actual deployed URL of the shelter dashboard
+    (e.g.&nbsp;<code>https://shelter.spokanebusinessassociation.com</code>).
+  </div>
+
+  <!-- Method 1 -->
+  <h2><span class="badge badge-rec">Method 1 — Recommended</span> iFrame Embed</h2>
+  <p>The standard approach. GrowthZone supports embedding external pages via its
+  <strong>Custom HTML</strong> or <strong>Embed Code</strong> widget.</p>
+
+  <h3>Steps</h3>
+  <ol>
+    <li>Log in to your <strong>GrowthZone Admin</strong> panel.</li>
+    <li>Go to <strong>Website &rarr; Pages</strong> and open the page you want to edit.</li>
+    <li>Click <strong>Add Widget</strong> (or the <strong>+</strong> icon in the page builder).</li>
+    <li>Choose <strong>Custom HTML</strong> or <strong>Embed Code</strong>.</li>
+    <li>Paste the code below and click <strong>Save / Publish</strong>.</li>
+  </ol>
+
+  <pre>&lt;iframe
+  src="https://YOUR-DOMAIN/embed"
+  width="100%"
+  height="620"
+  style="border: none; border-radius: 8px; display: block;"
+  title="Spokane Shelter Availability Map"
+  loading="lazy"
+  allow="geolocation"&gt;
+&lt;/iframe&gt;</pre>
+
+  <h3>Optional URL parameters</h3>
+  <table>
+    <thead>
+      <tr><th>Parameter</th><th>Example</th><th>Effect</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>filter</code></td>
+        <td><code>/embed?filter=families</code></td>
+        <td>Pre-selects a filter pill. Valid values: <code>all</code>, <code>men</code>,
+        <code>women</code>, <code>youth</code>, <code>young-adults</code>,
+        <code>families</code>, <code>lgbtq</code>, <code>dv</code>,
+        <code>low-barrier</code>, <code>high-barrier</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Example — open with Families filter pre-selected:</p>
+  <pre>&lt;iframe
+  src="https://YOUR-DOMAIN/embed?filter=families"
+  width="100%"
+  height="620"
+  style="border: none; border-radius: 8px; display: block;"
+  title="Spokane Shelter Availability Map — Families"
+  loading="lazy"&gt;
+&lt;/iframe&gt;</pre>
+
+  <!-- Method 2 -->
+  <h2><span class="badge badge-alt">Method 2 — Fallback</span> JavaScript Embed</h2>
+  <p>Some GrowthZone setups sanitize raw <code>&lt;iframe&gt;</code> tags in the HTML editor.
+  Use this JavaScript snippet if Method 1 doesn&rsquo;t render — it builds the iframe
+  dynamically after the page loads, bypassing most editor restrictions.</p>
+
+  <pre>&lt;div id="spokane-shelter-map"
+     style="width:100%;height:620px;border-radius:8px;overflow:hidden;"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function () {
+  var el = document.getElementById('spokane-shelter-map');
+  if (!el) return;
+  var f = document.createElement('iframe');
+  f.src   = 'https://YOUR-DOMAIN/embed';
+  f.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+  f.title = 'Spokane Shelter Availability Map';
+  f.setAttribute('loading', 'lazy');
+  el.appendChild(f);
+})();
+&lt;/script&gt;</pre>
+
+  <!-- Troubleshooting -->
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li>
+      <strong>Blank gray area</strong> — Check that the hosting server has outbound HTTPS
+      access (port 443). The map tiles load from CartoDB&rsquo;s CDN and require internet access.
+    </li>
+    <li>
+      <strong>&ldquo;Refused to display in a frame&rdquo;</strong> — The dashboard sets
+      <code>Content-Security-Policy: frame-ancestors *</code> on all responses, so this
+      should not happen. If it does, check whether a CDN or reverse-proxy is stripping
+      or overwriting response headers.
+    </li>
+    <li>
+      <strong>Map is cut off / scrollbar appears</strong> — Increase the <code>height</code>
+      on the <code>&lt;iframe&gt;</code> element. 620px fits comfortably on most desktop layouts.
+      Try 500px for narrow columns.
+    </li>
+    <li>
+      <strong>Filter pills not visible on mobile</strong> — The slim header bar is horizontally
+      scrollable. Swipe left inside the header to reveal additional pills.
+    </li>
+    <li>
+      <strong>GrowthZone &ldquo;Custom HTML&rdquo; not available</strong> — Contact your
+      GrowthZone account manager; the Custom HTML widget is available in most plans under
+      Website &rarr; Site Builder &rarr; Widget Library.
+    </li>
+  </ul>
+
+  <div class="footer">
+    Spokane Shelter Map &mdash; maintained by the Spokane Business Association &middot;
+    <a href="https://spokanebusinessassociation.com">spokanebusinessassociation.com</a>
+    &middot; Data: <a href="https://shelterme.spokane.org">ShelterMeSpokane.org</a>
+  </div>
+</div>
+</body>
+</html>

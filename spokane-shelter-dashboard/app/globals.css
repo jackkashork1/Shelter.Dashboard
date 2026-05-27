@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── SBA Brand Tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Primary brand */
+  --sba-teal:        #00B4C8;
+  --sba-teal-dark:   #0099AA;
+  --sba-teal-light:  #E6F9FB;
+
+  /* Surfaces */
+  --sba-white:       #ffffff;
+  --sba-offwhite:    #f5f7f8;
+  --sba-charcoal:    #2d2d2d;
+
+  /* Text */
+  --sba-text:           #1a1a1a;
+  --sba-text-secondary: #4b5563;
+  --sba-muted:          #6b7280;
+  --sba-border:         #e2e8f0;
+
+  /* Status (functional — not brand) */
+  --status-available: #16a34a;
+  --status-full:      #dc2626;
+  --status-unknown:   #6b7280;
+  --status-inclement: #2563eb;
+}
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--sba-text);
+  background: var(--sba-offwhite);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Shelter map marker dots ──────────────────────────────────────────────── */
+/* className: '' on divIcon — do NOT add the leaflet-div-icon class */
+.shelter-dot {
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 120ms ease;
+  position: relative;
+}
+
+.shelter-dot:hover {
+  transform: scale(1.35);
+}
+
+.shelter-dot.inclement {
+  background: white !important;
+  border: 2px dashed #2563eb !important;
+  box-shadow: none;
+}
+
+.shelter-dot.inclement::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+/* ── Leaflet popup overrides ─────────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  border: none !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15) !important;
+  min-width: 280px !important;
+  max-width: 320px !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: 100% !important;
+  min-width: 280px !important;
+}
+
+/* Teal popup tip */
+.leaflet-popup-tip {
+  background: #00B4C8 !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.leaflet-popup-close-button {
+  top: 10px !important;
+  right: 10px !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 18px !important;
+  z-index: 10;
+  line-height: 1 !important;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: white !important;
+  background: transparent !important;
+}
+
+/* ── Map attribution ─────────────────────────────────────────────────────── */
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  padding: 2px 6px !important;
+  color: var(--sba-muted) !important;
+}
+.leaflet-control-attribution a {
+  color: var(--sba-muted) !important;
+}
+
+/* Leaflet default shadow — remove */
+.leaflet-marker-shadow {
+  display: none !important;
+}
+
+/* ── Scrollbar utilities ─────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.sidebar-list::-webkit-scrollbar { width: 4px; }
+.sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.sidebar-list::-webkit-scrollbar-thumb {
+  background: var(--sba-border);
+  border-radius: 2px;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.pulse-live { animation: pulse-live 2s ease-in-out infinite; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.bottom-sheet-enter { animation: slideUp 220ms ease-out forwards; }
+
+/* ── Shelter row hover (used in Sidebar) ─────────────────────────────────── */
+.shelter-row:hover { background: #f5f7f8 !important; }
+.shelter-row.is-selected { background: #E6F9FB !important; }
+
+/* ── Print: show only the quick-reference guide ─────────────────────────── */
+/* #print-guide is always in the DOM but visually hidden off-screen          */
+#print-guide {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media print {
+  * { visibility: hidden !important; }
+  #print-guide,
+  #print-guide * { visibility: visible !important; }
+  #print-guide {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 40px 48px !important;
+    background: white !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #111827 !important;
+  }
+  #print-guide a { color: #00B4C8 !important; }
+}
+
+/* ── Location denied toast ───────────────────────────────────────────────── */
+@keyframes toastFade {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+.location-toast { animation: toastFade 3s ease forwards; }

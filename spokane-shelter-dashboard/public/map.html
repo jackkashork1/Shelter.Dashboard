@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shelter Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    #map { width: 100%; height: 100vh; }
+
+    /* ── Popup chrome ─────────────────────────────────────────────────────── */
+    .shelter-popup .leaflet-popup-content-wrapper {
+      padding: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    }
+    .shelter-popup .leaflet-popup-content {
+      margin: 0;
+      width: auto !important;
+      min-width: 260px;
+      max-width: 300px;
+    }
+    .shelter-popup .leaflet-popup-tip { background: #00B4C8; }
+    .shelter-popup .leaflet-popup-close-button {
+      color: rgba(255,255,255,0.85) !important;
+      top: 8px !important; right: 10px !important;
+      font-size: 20px !important; z-index: 10;
+    }
+
+    /* ── Marker dots ──────────────────────────────────────────────────────── */
+    .marker-dot {
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: transform 120ms ease;
+    }
+    .marker-dot:hover { transform: scale(1.3); }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  /* ── Map init ──────────────────────────────────────────────────────────── */
+  const map = L.map('map', {
+    center: [47.6588, -117.4260],
+    zoom: 13,
+    zoomControl: true,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution:
+      '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
+      '© <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  /* ── State ─────────────────────────────────────────────────────────────── */
+  const markers   = {};     // id → L.Marker
+  const copyTexts = {};     // id → plain-text shelter info for clipboard
+  let   userCircle = null;  // L.CircleMarker for user location
+
+  /* ── Status colour ─────────────────────────────────────────────────────── */
+  function statusColor(s) {
+    if (s.status === 'inclement-only') return null;
+    if (s.status === 'open')  return '#16a34a';
+    if (s.status === 'full')  return '#dc2626';
+    return '#6b7280';
+  }
+
+  /* ── Copy-to-clipboard (called from popup button onclick) ─────────────── */
+  function copyInfo(btn, id) {
+    const text = copyTexts[id];
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Copied!';
+      btn.style.color = '#15803d';
+      setTimeout(() => {
+        btn.textContent = '🔗 Copy shelter info';
+        btn.style.color = '#00B4C8';
+      }, 2000);
+    }).catch(() => {});
+  }
+  window.copyInfo = copyInfo; // expose for inline onclick
+
+  /* ── Build copy text ───────────────────────────────────────────────────── */
+  function buildCopyText(s) {
+    const lines = [
+      s.name,
+      s.operator,
+      '📍 ' + s.address,
+      '📞 ' + (s.phone || ''),
+      'Hours: ' + (s.hoursOpen || 'Unknown'),
+      'Check-in: ' + (s.checkInWindow || 'Unknown'),
+    ];
+    if (s.requiresNavigationCenterReferral) {
+      lines.push('⚠ Go to Navigation Center first (527 S Cannon St, 509-755-2489)');
+    }
+    if (s.requiresSober) lines.push('⚠ Clean & sober required');
+    lines.push('Data from Spokane Business Association Shelter Map');
+    return lines.join('\n');
+  }
+
+  /* ── Popup HTML ─────────────────────────────────────────────────────────── */
+  function makePopup(s) {
+    // Pre-build and store copy text
+    copyTexts[s.id] = buildCopyText(s);
+
+    const statusBadge =
+      s.status === 'open'
+        ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">
+             ${s.bedsAvailable != null ? s.bedsAvailable + ' beds available' : 'Open'}
+           </span>`
+      : s.status === 'full'
+        ? `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">Full</span>`
+      : s.status === 'inclement-only'
+        ? `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">Weather emergencies only</span>`
+        : `<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;">📞 Call to check availability</span>`;
+
+    const bedTags = (s.bedType || []).map(t =>
+      `<span style="background:#f1f5f9;color:#475569;font-size:10px;padding:2px 7px;border-radius:4px;
+                    margin-right:4px;display:inline-block;margin-bottom:3px;">${t}</span>`
+    ).join('');
+
+    const referralBadge = s.requiresNavigationCenterReferral
+      ? `<div style="background:#eff6ff;border-left:3px solid #2563eb;padding:8px 10px;border-radius:4px;
+                     margin-bottom:8px;font-size:11px;color:#1e40af;">
+           🧭 <strong>Referral required:</strong> Visit the
+           <a href="https://www.google.com/maps/dir/?api=1&destination=527+S+Cannon+St+Spokane+WA"
+              target="_blank" style="color:#1d4ed8;">Navigation Center at 527 S Cannon St</a>
+           first. 📞 509-755-2489
+         </div>`
+      : `<div style="background:#f0fdf4;padding:4px 8px;border-radius:4px;margin-bottom:8px;
+                     font-size:11px;color:#15803d;">✓ Call directly or walk in</div>`;
+
+    const soberBadge = s.requiresSober
+      ? `<div style="background:#fef9c3;color:#854d0e;font-size:11px;padding:4px 8px;
+                     border-radius:4px;margin-bottom:6px;">⚠ Clean &amp; sober required at intake</div>`
+      : '';
+
+    const isConfidential = s.address &&
+      (s.address.toLowerCase().includes('confidential') ||
+       s.address.toLowerCase().includes('undisclosed') ||
+       s.address.toLowerCase().includes('call'));
+
+    const directionsLink = !isConfidential
+      ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.address)}"
+            target="_blank" style="color:#00B4C8;font-size:12px;display:block;margin-top:6px;">Get directions →</a>`
+      : '';
+
+    const websiteLink = s.website
+      ? `<a href="${s.website}" target="_blank"
+            style="color:#00B4C8;font-size:12px;display:block;margin-top:4px;">Visit website →</a>`
+      : '';
+
+    const updated = s.lastUpdated
+      ? new Date(s.lastUpdated).toLocaleString('en-US', {
+          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
+        })
+      : 'Unknown';
+
+    const escapedId = s.id.replace(/'/g, "\\'");
+
+    return `
+      <div style="font-family:system-ui,-apple-system,sans-serif;">
+
+        <!-- Teal header -->
+        <div style="background:#00B4C8;color:white;padding:12px 16px 10px;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px;padding-right:20px;">${s.name}</div>
+          <div style="font-size:11px;opacity:0.8;margin-bottom:8px;">${s.operator}</div>
+          ${statusBadge}
+        </div>
+
+        <!-- White body -->
+        <div style="padding:12px 16px;background:white;max-height:360px;overflow-y:auto;">
+          <div style="margin-bottom:8px;">${bedTags}</div>
+
+          ${referralBadge}
+          ${soberBadge}
+
+          <div style="font-size:12px;color:#374151;margin-bottom:4px;">
+            🕐 <strong>Hours:</strong> ${s.hoursOpen || 'Call for hours'}
+          </div>
+          <div style="font-size:12px;color:#374151;margin-bottom:10px;">
+            📋 <strong>Check-in:</strong> ${s.checkInWindow || 'Call ahead'}
+          </div>
+
+          <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:6px;">
+            <div style="font-size:12px;color:#374151;margin-bottom:4px;">📍 ${s.address}</div>
+            ${s.phone
+              ? `<div style="font-size:12px;margin-bottom:3px;">
+                   📞 <a href="tel:${s.phone}" style="color:#00B4C8;">${s.phone}</a>
+                 </div>`
+              : ''}
+            ${s.email
+              ? `<div style="font-size:12px;margin-bottom:3px;">
+                   ✉ <a href="mailto:${s.email}" style="color:#00B4C8;">${s.email}</a>
+                 </div>`
+              : ''}
+            ${directionsLink}
+            ${websiteLink}
+          </div>
+
+          ${s.notes
+            ? `<div style="font-size:11px;color:#6b7280;font-style:italic;border-top:1px solid #f3f4f6;
+                           padding-top:8px;margin-top:6px;">${s.notes}</div>`
+            : ''}
+
+          <!-- Footer: timestamp + copy button -->
+          <div style="display:flex;justify-content:space-between;align-items:center;
+                      margin-top:10px;border-top:1px solid #f9fafb;padding-top:8px;">
+            <div style="font-size:10px;color:#9ca3af;">
+              ⏱ ${updated} · Always call to confirm
+            </div>
+            <button
+              onclick="copyInfo(this, '${escapedId}')"
+              style="background:none;border:none;cursor:pointer;font-size:11px;
+                     color:#00B4C8;font-family:inherit;padding:0 0 0 8px;white-space:nowrap;"
+            >🔗 Copy shelter info</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ── Render / refresh all markers ───────────────────────────────────────── */
+  function renderMarkers(shelters, selectedId) {
+    Object.values(markers).forEach(m => m.remove());
+    Object.keys(markers).forEach(k => delete markers[k]);
+
+    (shelters || []).forEach(s => {
+      if (s.lat == null || s.lng == null) return;
+
+      const isInclement = s.status === 'inclement-only';
+      const isSelected  = s.id === selectedId;
+      const color = statusColor(s);
+      const size  = isSelected ? 22 : 16;
+      const half  = size / 2;
+
+      const selectedRing = isSelected
+        ? 'box-shadow:0 0 0 3px rgba(0,180,200,0.5),0 2px 8px rgba(0,0,0,0.3);'
+        : '';
+
+      let dotHtml;
+      if (isInclement) {
+        dotHtml = `<div class="marker-dot" style="width:${size}px;height:${size}px;
+          background:white;border:2px dashed #1d4ed8;${selectedRing}
+          display:flex;align-items:center;justify-content:center;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#1d4ed8;"></div>
+        </div>`;
+      } else {
+        dotHtml = `<div class="marker-dot" style="width:${size}px;height:${size}px;
+          background:${color};border:2px solid white;${selectedRing}"></div>`;
+      }
+
+      const icon = L.divIcon({
+        html: dotHtml,
+        className: '',
+        iconSize:    [size, size],
+        iconAnchor:  [half, half],
+        popupAnchor: [0, -(half + 6)],
+      });
+
+      const marker = L.marker([s.lat, s.lng], { icon });
+
+      marker.bindPopup(makePopup(s), { maxWidth: 320, className: 'shelter-popup' });
+
+      marker.on('click', () => {
+        window.parent.postMessage({ type: 'SHELTER_SELECTED', id: s.id }, '*');
+      });
+
+      marker.addTo(map);
+      markers[s.id] = marker;
+    });
+  }
+
+  /* ── postMessage handler ─────────────────────────────────────────────────── */
+  let acknowledged = false;
+
+  window.addEventListener('message', (event) => {
+    const msg = event.data;
+    if (!msg || !msg.type) return;
+
+    if (msg.type === 'INIT_MAP' || msg.type === 'UPDATE_SHELTERS') {
+      acknowledged = true;  // stop the MAP_READY retry loop
+      renderMarkers(msg.shelters, msg.selectedId);
+    }
+
+    if (msg.type === 'FLY_TO') {
+      const m = markers[msg.id];
+      if (m) {
+        map.flyTo(m.getLatLng(), 15, { duration: 0.8 });
+        setTimeout(() => m.openPopup(), 850);
+      }
+    }
+
+    if (msg.type === 'SHOW_USER_LOCATION') {
+      if (userCircle) { userCircle.remove(); userCircle = null; }
+      userCircle = L.circleMarker([msg.lat, msg.lng], {
+        radius:      8,
+        fillColor:   '#2563eb',
+        fillOpacity: 0.85,
+        color:       'white',
+        weight:      2,
+      }).addTo(map);
+
+      // Also add a faint halo ring
+      L.circle([msg.lat, msg.lng], {
+        radius:      400,     // ~400m visual ring
+        color:       '#2563eb',
+        fillColor:   '#2563eb',
+        fillOpacity: 0.06,
+        weight:      1,
+      }).addTo(map);
+
+      map.setView([msg.lat, msg.lng], 14, { animate: true });
+    }
+  });
+
+  /* ── Signal readiness to parent (retry until acknowledged) ──────────────── */
+  function announceReady() {
+    if (!acknowledged) {
+      window.parent.postMessage({ type: 'MAP_READY' }, '*');
+      setTimeout(announceReady, 300);
+    }
+  }
+  // Give map tiles a moment to initialise before the first ping
+  setTimeout(announceReady, 500);
+</script>
+</body>
+</html>

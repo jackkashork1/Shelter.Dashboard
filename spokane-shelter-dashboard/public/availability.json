@@ -1,0 +1,21 @@
+{
+  "lastUpdated": "2000-01-01T00:00:00.000Z",
+  "shelters": {
+    "house-of-charity":        { "status": "unknown",        "bedsAvailable": null },
+    "ugm-mens":                { "status": "unknown",        "bedsAvailable": null },
+    "ugm-crisis-women":        { "status": "unknown",        "bedsAvailable": null },
+    "family-promise-open-doors": { "status": "unknown",      "bedsAvailable": null },
+    "crosswalk-youth":         { "status": "unknown",        "bedsAvailable": null },
+    "voa-young-adult":         { "status": "unknown",        "bedsAvailable": null },
+    "cat-spokane":             { "status": "unknown",        "bedsAvailable": null },
+    "ywca-dv":                 { "status": "unknown",        "bedsAvailable": null },
+    "navigation-center":       { "status": "open",           "bedsAvailable": null },
+    "jewels-general":          { "status": "unknown",        "bedsAvailable": null },
+    "jewels-womens":           { "status": "unknown",        "bedsAvailable": null },
+    "jewels-aurora":           { "status": "unknown",        "bedsAvailable": null },
+    "salvation-army-way-out":  { "status": "inclement-only", "bedsAvailable": null },
+    "hoc-inclement":           { "status": "inclement-only", "bedsAvailable": null },
+    "jewels-inclement-women":  { "status": "inclement-only", "bedsAvailable": null },
+    "revive-inclement":        { "status": "inclement-only", "bedsAvailable": null }
+  }
+}
