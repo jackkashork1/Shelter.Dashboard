@@ -229,18 +229,18 @@
   }
 
   /* ── Verified coordinates (bypasses any postMessage corruption) ─────────── */
-  const VERIFIED_COORDS = {
-    'navigation-center-cannon-street':    [47.65097, -117.44150],
-    'house-of-charity':                   [47.65097, -117.44150],
-    'ugm-mens-shelter':                   [47.661430853229994, -117.39169815776525],
-    'ugm-crisis-shelter-women-children':  [47.67943, -117.38730],
-    'family-promise-open-doors':          [47.671610, -117.380860],
-    'crosswalk-youth-shelter':            [47.67130, -117.36603],
-    'young-adult-shelter-voa':            [47.67259, -117.36492],
-    'compassionate-addiction-treatment':  [47.65296, -117.39604],
-    'salvation-army-way-out':             [47.67156, -117.41239],
-    'jewels-inclement-weather-women':     [47.70827, -117.46974],
-    'jewels-helping-hands-general':       [47.6580,  -117.4200],
+  const COORDS = {
+    'house-of-charity':          [47.65589715263517, -117.41296466932953],
+    'ugm-mens':                  [47.66145775890149, -117.39153332672005],
+    'ugm-crisis-women':          [47.67927102340507, -117.38737062151056],
+    'family-promise-open-doors': [47.671487274517155, -117.38084858717572],
+    'crosswalk-youth':           [47.67127468307194, -117.36607280678055],
+    'voa-young-adult':           [47.67247930665086, -117.36486132689772],
+    'cat-spokane':               [47.65297373538354, -117.39602859890424],
+    'navigation-center':         [47.650831382977046, -117.44138467787505],
+    'salvation-army-way-out':    [47.671538641712445, -117.41221751077225],
+    'jewels-inclement-women':    [47.708231094385035, -117.46976982438214],
+    'hoc-inclement':             [47.650831382977046, -117.44138467787505],
   };
 
   /* ── Render / refresh all markers ───────────────────────────────────────── */
@@ -250,7 +250,7 @@
 
     (shelters || []).forEach(s => {
       // Use verified coords if available; fall back to whatever the shelter object provides
-      const coords = VERIFIED_COORDS[s.id] ||
+      const coords = COORDS[s.id] ||
         (s.lat != null && s.lng != null ? [s.lat, s.lng] : null);
       if (!coords) return; // skip if no usable coordinates
 

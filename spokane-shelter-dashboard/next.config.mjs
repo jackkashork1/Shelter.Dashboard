@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   async headers() {
     return [
       // ── Allow all origins to embed the dashboard in an iframe ──────────
