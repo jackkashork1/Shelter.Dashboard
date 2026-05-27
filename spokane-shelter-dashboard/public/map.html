@@ -228,13 +228,31 @@
     `;
   }
 
+  /* ── Verified coordinates (bypasses any postMessage corruption) ─────────── */
+  const VERIFIED_COORDS = {
+    'navigation-center-cannon-street':    [47.65097, -117.44150],
+    'house-of-charity':                   [47.65097, -117.44150],
+    'ugm-mens-shelter':                   [47.661430853229994, -117.39169815776525],
+    'ugm-crisis-shelter-women-children':  [47.67943, -117.38730],
+    'family-promise-open-doors':          [47.671610, -117.380860],
+    'crosswalk-youth-shelter':            [47.67130, -117.36603],
+    'young-adult-shelter-voa':            [47.67259, -117.36492],
+    'compassionate-addiction-treatment':  [47.65296, -117.39604],
+    'salvation-army-way-out':             [47.67156, -117.41239],
+    'jewels-inclement-weather-women':     [47.70827, -117.46974],
+    'jewels-helping-hands-general':       [47.6580,  -117.4200],
+  };
+
   /* ── Render / refresh all markers ───────────────────────────────────────── */
   function renderMarkers(shelters, selectedId) {
     Object.values(markers).forEach(m => m.remove());
     Object.keys(markers).forEach(k => delete markers[k]);
 
     (shelters || []).forEach(s => {
-      if (s.lat == null || s.lng == null) return;
+      // Use verified coords if available; fall back to whatever the shelter object provides
+      const coords = VERIFIED_COORDS[s.id] ||
+        (s.lat != null && s.lng != null ? [s.lat, s.lng] : null);
+      if (!coords) return; // skip if no usable coordinates
 
       const isInclement = s.status === 'inclement-only';
       const isSelected  = s.id === selectedId;
@@ -266,7 +284,7 @@
         popupAnchor: [0, -(half + 6)],
       });
 
-      const marker = L.marker([s.lat, s.lng], { icon });
+      const marker = L.marker(coords, { icon });
 
       marker.bindPopup(makePopup(s), { maxWidth: 320, className: 'shelter-popup' });
 
